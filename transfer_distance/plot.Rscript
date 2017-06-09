@@ -1,0 +1,50 @@
+#!/usr/bin/env Rscript
+library(ggplot2)
+
+args = commandArgs(trailingOnly=TRUE)
+
+if (length(args)==0) {
+  stop("You should give the number of taxa (16,128,1024 or 8192)", call.=FALSE)
+}
+
+size=args[1]
+
+ref="caterpillar"
+randc=c("caterpillar","uniform","yule","balanced")
+data=data.frame(branch=integer(),depth=integer(),dist=double(),type=character())
+for(r in randc){
+    f=paste0("result/stats_",size,"_ref",ref,"tree_rand",r,"tree.txt")
+    dt=read.table(f)
+    colnames(dt)=c("branch","depth","dist")
+    dt$type=r
+    data=rbind(data,dt)
+}
+
+data$type=factor(data$type,levels=c("caterpillar","uniform","yule","balanced"))
+
+svg(paste0("stats_",size,".svg"),width=8,height=5)
+ggplot(data, aes(x=depth, y=dist,color=type)) +
+    stat_summary(fun.y="mean", geom="line",  size=1)+
+    theme_bw()+
+    ylim(0,max(data$depth))+
+    xlim(2,max(data$depth))+
+    geom_abline(intercept = -1, slope = 1,color="blue")+
+    theme(text = element_text(size=20))+
+    xlab("Branch min subtree size")+
+    ylab("Transfer distance")+
+    ggtitle(paste0(size," Taxa"))
+dev.off()
+
+svg(paste0("stats_",size,"_norm.svg"),width=8,height=5)
+data$norm=1-data$dist/(data$depth-1)
+ggplot(data[data$depth>1,], aes(x=depth, y=norm,col=type,fill=type)) +
+    stat_summary(fun.y=max,  geom = 'line', linetype="dotted", size=1)+
+    stat_summary(fun.y=mean, geom="line")+
+    theme_bw()+
+    ylim(0,max(data$norm))+
+    xlim(2,max(data$depth))+
+    theme(text = element_text(size=20))+
+    xlab("Branch min subtree size")+
+    ylab("TBE")+
+    ggtitle(paste0(size," Taxa"))
+dev.off()

@@ -1,0 +1,52 @@
+#!/usr/bin/env Rscript
+library(plyr)
+library(dplyr)
+library(stringr)
+
+set.seed(123)
+
+# Remove sites with only gaps
+remove_gaps_sites=function(seqs){
+  outseqs=seqs
+  seqmatrix=do.call(rbind,lapply(seqs$sequence,function(s){return(strsplit(as.character(s), "")[[1]])}))
+  keptindexes=lapply(1:dim(seqmatrix)[2],function(col,seqmatrix){
+    return(sum(seqmatrix[,col] ==  "-") != length(seqmatrix[,col]))
+    #return(! ("-" %in% seqmatrix[,col]))
+  },seqmatrix=seqmatrix)
+  seqmatrix=seqmatrix[,unlist(keptindexes)]
+  allseqs=unlist(apply(seqmatrix,1,function(r){return(paste0(r,collapse=""))}))
+  outseqs$sequence=allseqs
+  return(outseqs)
+}
+
+args <- commandArgs(trailingOnly = TRUE)
+fastafile=args[1]
+outputfile=args[2]
+
+seq_data = read.table(fastafile);
+colnames(seq_data) = c("species","sequence");
+
+# We remplace special characters
+unique(unlist(
+  lapply(as.character(seq_data$sequence),function(x){
+    return(unique(strsplit(x, "")[[1]]))
+  })
+))
+seq_data$sequence = gsub("\\?","-",seq_data$sequence)
+seq_data$sequence = gsub("!","-",seq_data$sequence)
+seq_data$sequence = gsub("\\*","-",seq_data$sequence)
+unique(unlist(
+  lapply(seq_data$sequence,function(x){
+    return(unique(strsplit(x, "")[[1]]))
+  })
+))
+
+# We keep only one sequence per species, and which is specific to that species
+count_species_by_sequences = plyr::count(unique(seq_data),c("sequence"))
+seq_more_than_once=count_species_by_sequences$sequence[count_species_by_sequences$freq>1]
+seq_once=seq_data[!(seq_data$sequence %in% seq_more_than_once),]
+seq_once = seq_once[!duplicated(seq_once$species),]
+
+seq_once_fasta=seq_once[,c("species","sequence")]
+seq_once_fasta$species = paste(">",seq_once_fasta$species,sep="")
+write.table(seq_once_fasta,outputfile,row.names=F,col.names=F,quote=F,sep="\n")

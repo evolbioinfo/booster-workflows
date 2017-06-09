@@ -1,0 +1,2 @@
+perl getClades.pl <(gunzip -c nodes.dmp.gz) <(gunzip -c ../specimen_Mammalia.tsv.gz) <(gunzip -c ../../mammals_COI5P/result/aligns/name_map.txt.gz | cut -f 1) <(gunzip -c names.dmp.gz) > ncbi_labels.nw
+perl ncbitax_tonewick.pl <(gunzip -c nodes.dmp.gz) <(gunzip -c ../specimen_Mammalia.tsv.gz) <(gunzip -c ../../mammals_COI5P/result/aligns/name_map.txt.gz | cut -f 1) <(gunzip -c names.dmp.gz) > ncbi.nw
