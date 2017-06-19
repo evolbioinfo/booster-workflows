@@ -1,5 +1,5 @@
 # Realign without known recombinants and remove drug resistance mutations
-nextflow run realign.nf -c nextflow_config/realign.config               \
+nextflow run realign.nf -c nextflow_configs/realign.config               \
                         --alignment "../data/vih/All.pol.aln.fasta.gz"  \
                         --hxb2 "../data/vih/HXB2.fasta"                 \
                         --taxafile "../data/vih/pol_nonrecombinant.txt" \
