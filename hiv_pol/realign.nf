@@ -16,10 +16,6 @@ resultDir.with {mkdirs()}
 /* Selects good taxa and unalign the alignment */
 /* And adds HXB2 sequence */
 process selectTaxa {
-	cpus 1
-	memory '1G'
-	time '5m'
-
 	input :
 	file alignment
 	file taxafile
@@ -43,13 +39,6 @@ process selectTaxa {
 
 /* Realigns the sequences */
 process realignSequences {
-
-	
-	module "fasta/3.6:mafft/7.273"
-
-	cpus 12
-	/*clusterOptions { '--qos=long' }*/
-
 	input:
 	file(sequences) from selectedAlignment
 	
@@ -61,7 +50,7 @@ process realignSequences {
 	shell:
 	'''
 	gunzip -c !{sequences} > seqs.fa
-	mafft --thread 12 seqs.fa > alignment.fasta
+	mafft --thread !{task.cpus} seqs.fa > alignment.fasta
 	gzip alignment.fasta
 	rm seqs.fa
 	'''
@@ -69,8 +58,6 @@ process realignSequences {
 
 /* Remove Drug Resistance Mutations */
 process removeDRM {
-	module "R/3.2.3"
-
 	input:
 	file(align) from realignment
 	

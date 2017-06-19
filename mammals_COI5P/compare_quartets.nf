@@ -21,10 +21,6 @@ This will rename taxa of ncbi into renamed taxa of the analysis (using mapfile)
 And will prune ncbi+inferred+bootstrap trees to get the same set of taxa
 */
 process preprocessTree {
-	cpus 1
-	memory '1G'
-	time '10m'
-
 	input:
 	file div1tree 
 	file truetree
@@ -58,35 +54,29 @@ preprocessedboottrees.into{boottrees1; boottrees2}
 /* We divide the inferred tree in as many trees as there are edges in the tree */
 /* Each tree will have only one resolved branch */
 process divideTreeIntoEdges {
-	cpus 5
-	memory '5G'
-	time '10m'
 
 	input:
-	file(divtree) from div1tree1
+	file divtree from div1tree1
 
 	output:
-	file("edge*") into staredges mode flatten
+	file "edge*" into staredges mode flatten
 
 	shell:
 	'''
-	gotree compute edgetrees -i !{divtree} -o edge -t 10
+	gotree compute edgetrees -i !{divtree} -o edge -t !{task.cpus}
 	'''
 }
 
 /* For each edge tree, we compare the quartets with the NCBI tree */
 process analyzeStarEdges {
 	tag {staredge.baseName}
-	cpus 1
-	memory '1G'
-	/*time '2m'*/
 
 	input:
-	file(staredge) from staredges
-	file(truetree) from truetree1.first()
+	file staredge from staredges
+	file truetree from truetree1.first()
 
 	output:
-	file("quartet") into quartets
+	file "quartet" into quartets
 
 	shell:
 	template 'quartet.sh'
@@ -102,23 +92,18 @@ quartetscopy.subscribe{
   compared to the true tree 
 */
 process transferDistTrue {
-	cpus 5
-	memory '5G'
-	time '100m'
-	/*cache false*/
-
 	input:
-	file(divtree) from div1tree2
-	file(truetree) from truetree2.first()
+	file divtree from div1tree2
+	file truetree from truetree2.first()
 
 	output:
-	file("transfer_to_true.txt")   into truetrans
-	file("div_1_transfer_true.nw") into truetranstree
+	file "transfer_to_true.txt"   into truetrans
+	file "div_1_transfer_true.nw" into truetranstree
 
 	shell:
 	'''
 	#!/bin/bash
-	booster -i !{divtree} -b !{truetree} -n empirical -o div_1_transfer_true.nw -@ 5
+	booster -i !{divtree} -b !{truetree} -n empirical -o div_1_transfer_true.nw -@ !{task.cpus}
 	gotree stats edges -i div_1_transfer_true.nw > transfer_to_true.txt
 	'''
 }
@@ -129,17 +114,13 @@ truetranstree.subscribe{
 
 /* Which bipartitions are really true? */
 process classicalDistTrue {
-	cpus 1
-	memory '5G'
-	time '100m'
-
 	input:
-	file(divtree) from div1tree4
-	file(truetree) from truetree3.first()
+	file divtree from div1tree4
+	file truetree from truetree3.first()
 
 	output:
-	file("class_to_true.txt")   into trueclass
-	file("div_1_class_true.nw") into trueclasstree
+	file "class_to_true.txt"   into trueclass
+	file "div_1_class_true.nw" into trueclasstree
 
 	shell:
 	'''
@@ -155,23 +136,19 @@ trueclasstree.subscribe{
 
 /* Compute transfer support of branches of inferred tree */
 process transferSupport {
-	cpus 5
-	memory '1G'
-	time '3h'
-
 	input:
-	file(divtree) from div1tree3.first()
-	file(boottrees1)
+	file divtree from div1tree3.first()
+	file boottrees1
 
 	output:
-	file("transfer_values.txt") into transvalues
-	file("div_1_transfer.nw") into transtree
+	file "transfer_values.txt" into transvalues
+	file "div_1_transfer.nw" into transtree
 
 	shell:
 	'''
 	#!/bin/bash
 	gunzip -c !{boottrees1} > boot.nw
-	booster -i !{divtree} -b boot.nw -@ 5 -o div_1_transfer.nw
+	booster -i !{divtree} -b boot.nw -@ !{task.cpus} -o div_1_transfer.nw
 	gotree stats edges -i div_1_transfer.nw > transfer_values.txt
 	'''
 }
@@ -182,22 +159,18 @@ transtree.subscribe{
 
 /* Classical support to bootstrap trees */
 process classicalSupport {
-	cpus 1
-	memory '5G'
-	time '1h'
-
 	input:
-	file(divtree) from div1tree5
-	file(boottrees) from boottrees2
+	file divtree from div1tree5
+	file boottrees from boottrees2
 
 	output:
-	file("class_values.txt") into classvalues
-	file("div_1_class.nw") into classtree
+	file "class_values.txt" into classvalues
+	file "div_1_class.nw" into classtree
 
 	shell:
 	'''
 	#!/bin/bash
-	gotree compute support classical -i !{divtree} -b !{boottrees} -t 1 > div_1_class.nw
+	gotree compute support classical -i !{divtree} -b !{boottrees} -t !{task.cpus} > div_1_class.nw
 	gotree stats edges -i div_1_class.nw > class_values.txt
 	'''
 }
@@ -209,14 +182,14 @@ classtree.subscribe{
 /* We group all these information into one single file */
 process groupInfos{
 	input:
-	file(quartetsanalyze)
-	file(truetrans)
-	file(trueclass)
-	file(transvalues)
-	file(classvalues)
+	file quartetsanalyze
+	file truetrans
+	file trueclass
+	file transvalues
+	file classvalues
 
 	output:
-	file("groupedinfos.txt") into allinfos
+	file "groupedinfos.txt" into allinfos
 
 	shell:
 	'''

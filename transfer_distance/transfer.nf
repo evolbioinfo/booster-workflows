@@ -25,10 +25,6 @@ nbrandperprocess = (int)(nbrand / params.divisions)
 
 process reftree {
 
-	cpus 1
-	memory '5G'
-	time "10m"
-
 	input:
 	val size
 	val nbref
@@ -59,18 +55,12 @@ process reftree {
 
 process gentrees {
 
-	cpus 1
-	memory '5G'
-	/*time "20m"*/
-
 	input:
 	val size
 	val depth
 	val randtree
 	val nbrandperprocess
 	val divisions
-
-	input:
 	file reftree from reftreechan
 
 	output:
@@ -105,9 +95,7 @@ refrand=refrandtreeschan.map{ref,rand -> [rand.name.tokenize('.')[1],ref,rand]}
 
 process comptransfer {
 
-	cpus 1 memory '5G' /*time "2h"*/
-
-	input:
+input:
 	set val(div), file(ref), file(rand) from refrand
 
 	output:
@@ -139,12 +127,6 @@ process ConcatStats {
 }
 
 process meanDistance{
-	cpus 1
-	memory '2G'
-	time '30m'
-
-	module 'R/3.2.3'
-
 	input:
 	file concatstats
 
@@ -168,11 +150,6 @@ groupedstatscopy.subscribe{
 }
 
 process plotstats {
-	cpus 1
-	memory '500m'
-	time "2m"
-
-	module 'R/3.2.3'
 
 	input:
 	file(stats) from groupedstats

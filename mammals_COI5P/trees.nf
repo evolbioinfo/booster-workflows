@@ -34,11 +34,6 @@ seedChan = Channel.from([31144,12009,13569,18804,29987,15882,8344,28523,1713,194
   come from
 */
 process alignmentToFasta {
-	executor 'local'
-	cpus 1
-	memory '500M'
-	time '1m'
-
 	input :
 	  file specimen
 	  file alignment
@@ -57,13 +52,6 @@ process alignmentToFasta {
   that have more than one sequence
 */
 process selectOneSequenceSpecies {
-	module 'R/3.2.3'
-	executor 'local'
-
-	cpus 1
-	memory '1G'
-	time '10m'
-
 	input : 
 	file alignFasta
 	
@@ -93,11 +81,6 @@ originalAlignmentCopy.subscribe{
 */
 process divideAlignment{
 	tag "${align} : div ${div} - seed ${seed}"
-	executor 'local'
-
-	cpus 1
-	memory '1G'
-	time '10m'
 
 	input:
 	set file(align),file(map) from originalAlignment.first()
@@ -141,16 +124,7 @@ dividedAlignment.into{dividedAlignmentToBoot; refAlignmentFastTree; refAlignment
 process runRefFastTree {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	module 'FastTree/2.1.8'
-        module 'phyml'
-
-	cpus 1
 	memory { div == 1 ? '2G' : '1G' }
-
-	time '15h'
-
-	cpus 1 
-	scratch true
 
 	input:
 	set val(div), val(seed), file(refAlign) from refAlignmentFastTree
@@ -182,15 +156,8 @@ refTreeOutput.subscribe{
 process runRefPhyML {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	module 'phyml'
-
-	cpus 1
         time { div <= 2 ? '10d' : ( div <= 4 ? '48h' : '10h')}
 	memory { div == 1 ? '2G' : '1G' }
- 
-
-	cpus 1 
-	scratch true
 
 	input:
 	set val(div), val(seed), file(refAlign) from refAlignmentPhyML
@@ -219,13 +186,7 @@ refTreePhyMLOutput.subscribe{
 process runRefRaxML {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	cpus 2
-	memory '1G'
         time { div <= 2 ? '10d' : ( div <= 4 ? '48h' : '10h')}
-        /*clusterOptions { div <= 4 ? '--qos=long' : '--qos=normal' }*/
-
-	cpus 1 
-	scratch true
 
 	input:
 	set val(div), val(seed), file(refAlign) from refAlignmentRaxML
@@ -237,7 +198,7 @@ process runRefRaxML {
 	'''
 	#!/usr/bin/env bash
 	goalign reformat phylip -i !{refAlign} > al.phy
-	raxmlHPC-PTHREADS -f o -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T 2
+	raxmlHPC-PTHREADS -f o -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
 	mv RAxML_result.TEST tree.nw
 	gzip tree.nw
 	rm -f al.phy_* al.phy
@@ -253,12 +214,6 @@ refTreeRaxMLOutput.subscribe{
 */
 process bootstrapAlignments {
 	tag "${refAlign} : div ${div} - seed ${seed}"
-
-	scratch true
-
-	cpus 1
-	memory '1G'
-	time '10m'
 
 	input :
 	set val(div), val(seed), file(refAlign) from dividedAlignmentToBoot
@@ -284,14 +239,6 @@ bootAlignment.choice( dividedBootAlignment, groupedBootAlignment ) { item -> ite
 process runGroupedBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
 
-	module 'FastTree/2.1.8'
-
-	cpus 1
-	memory '1G'
-	time '24h'
-
-	scratch true
-
 	input:
 	set val(div), val(seed), val(nbtaxa), file(bootFile) from groupedBootAlignment
 
@@ -308,14 +255,6 @@ process runGroupedBootFastTree {
 */
 process divideBootAlign{
 	tag "${bootFile} : div ${div} - seed ${seed}"
-
-	module 'FastTree/2.1.8'
-
-	cpus 1
-	memory '500M'
-	time '10m'
-
-	scratch true
 
 	input:
 	set val(div), val(seed), val(nbtaxa), file(bootFile) from dividedBootAlignment
@@ -334,14 +273,6 @@ process divideBootAlign{
 /* On FastTree process per bootstrap tree */
 process runBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
-
-	module 'FastTree/2.1.8'
-
-	cpus 1
-	memory '1G'
-	time '15h'
-
-	scratch true
 
 	input:
 	set val(div), val(seed), file(bootFile) from dividedBootAlignToTree
@@ -370,13 +301,6 @@ This process reads the Channel joinedBootTreeOutput
 and Concatenates all bootstrap trees into a single file
 */
 process concatBootTreeFiles {
-
-	scratch true
-
-	cpus 1
-	memory '500M'
-	time '10m'
-
 	input:
 	set val(div), val(seed), file(bootstrapFileList) from joinedBootTreeOutput
 	

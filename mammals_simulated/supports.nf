@@ -22,10 +22,6 @@ divisionChan = Channel.from([1, 8, 8, 8, 8, 8, 8, 8, 8, 64, 64, 64, 64, 64, 64, 
 seedChan = Channel.from([65512081, 67314813, 29193783, 22809492, 29601577, 64499408, 5813842, 38806899, 53759907, 2689187, 63333043, 33698375, 33513082, 90261325, 70327223, 43834756, 86136850, 22949422, 5532617, 58303852, 96496114, 92158152, 31698872, 54929374, 23454316, 71561917, 34702350, 32591600, 28339787, 41201882, 27190056, 46180751, 37998346, 27504745, 38335643, 35759018, 30618122, 40363485, 93118766, 56295590, 42010332, 20498030, 26641928, 47847232, 12192448, 60565314, 25997758, 22058783, 74692809, 62882754, 42022524, 48494987, 94042845, 29281382, 55553992, 64329656, 98284480, 53380616, 43086462, 95835734, 90288732, 34669284, 46635252, 44865659, 16560924, 52470104, 72511404, 64150685, 86344560, 29054110, 14254813, 60960293, 98508141])
 
 process getFiles{
-	cpus 1
-	memory '500M'
-	time '30s'
-
 	input:
 	val(div) from divisionChan
 	val(seed) from seedChan
@@ -50,11 +46,6 @@ originalFiles.into{originalFilesSupport; originalFilesSupportTRUE}
 /************************/
 process computeSupports {
 	tag "${refAlign.name} - ${div} ${seed}"
-	scratch true
-
-	cpus 10
-	memory '1G'
-	time '24h'
 
 	input:
 	set val(div), val(seed), file(refAlign), file(refTree), file(bootTrees) from originalFilesSupport
@@ -70,13 +61,13 @@ process computeSupports {
 	gunzip -c !{refTree}   > ref.nw
 	gunzip -c !{refAlign}  > ali.fa	
 
-	gotree compute support classical -i ref.nw -b boot.nw -o fbp.nw -t 5
-	gotree compute support booster -i ref.nw -o boot.nw -t 10 -l tbe.log --moving-taxa --dist-cutoff 0.3 -o tbe.nw
+	gotree compute support classical -i ref.nw -b boot.nw -o fbp.nw -t !{task.cpus}
+	gotree compute support booster -i ref.nw -o boot.nw -t !{task.cpus} -l tbe.log --moving-taxa --dist-cutoff 0.3 -o tbe.nw
 
 	# We recompute FBP using trees without rogues
 	gotree prune -i ref.nw -f !{roguefile} -o ref_norogue.nw
 	gotree prune -i boot.nw -f !{roguefile} -o boot_norogue.nw
-	gotree compute support classical -i ref_norogue.nw -b boot_norogue.nw -t 4 -o fbp_norogue.nw
+	gotree compute support classical -i ref_norogue.nw -b boot_norogue.nw -t !{task.cpus} -o fbp_norogue.nw
 
 	rm -f boot.nw ref.nw ali.fa
 	'''
@@ -93,12 +84,6 @@ supporttreescopy.subscribe{
 
 process analyzeSupports {
 	tag "${div} ${seed}"
-
-	scratch true
-
-	cpus 1
-	memory '1G'
-	time '10m'
 
 	input:
 	set val(div), val(seed), file(fbp), file(tbe), file(tbelog), file(fbpnorogue) from supporttreesnext

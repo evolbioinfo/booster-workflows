@@ -33,11 +33,6 @@ seedChan = Channel.from([31144,12009,13569,18804,29987,15882,8344,28523,1713,194
   come from
 */
 process alignmentToFasta {
-	executor 'local'
-	cpus 1
-	memory '500M'
-	time '1m'
-
 	input :
 	  file specimen
 	  file alignment
@@ -56,13 +51,6 @@ process alignmentToFasta {
   that have more than one sequence
 */
 process selectOneSequenceSpecies {
-	module 'R/3.2.3'
-	executor 'local'
-
-	cpus 1
-	memory '1G'
-	time '10m'
-
 	input : 
 	file alignFasta
 	
@@ -92,11 +80,6 @@ originalAlignmentCopy.subscribe{
 */
 process divideAlignment{
 	tag "${align} : div ${div} - seed ${seed}"
-	executor 'local'
-
-	cpus 1
-	memory '1G'
-	time '10m'
 
 	input:
 	set file(align),file(map) from originalAlignment.first()
@@ -133,11 +116,6 @@ divideAlignmentCopy.subscribe{
 process runRAxML {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	memory '20G'
-
-	cpus 10
-	scratch true
-
 	input:
 	set val(div), val(seed), file(refAlign) from dividedAlignment
 
@@ -149,7 +127,7 @@ process runRAxML {
 	#!/usr/bin/env bash
 	goalign reformat phylip -i !{refAlign} > al.phy
 	goalign reformat fasta  -i !{refAlign} > al.fa
-	raxmlHPC-PTHREADS -f a -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T 10 -p $RANDOM -x $RANDOM -# 1000
+	raxmlHPC-PTHREADS -f a -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus} -p $RANDOM -x $RANDOM -# 1000
 	gzip -c RAxML_bestTree.TEST > refTree.nw.gz
 	gzip -c RAxML_bootstrap.TEST > bootTrees.nw.gz
 

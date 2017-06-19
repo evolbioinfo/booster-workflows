@@ -30,10 +30,6 @@ seedChan = Channel.from([691607951, 8183053866, 4893742101, 4077898797, 34370474
 /* Rename the taxa of the alignment */
 process renameAlignment {
 
-	cpus 1
-	memory '1G'
-	time '10m'
-
 	input : 
 	file alignment
 	
@@ -58,10 +54,6 @@ originalAlignmentCopy.subscribe{
 */
 process divideAlignment{
 	tag "${align} : div ${div} - seed ${seed}"
-
-	cpus 1
-	memory '1G'
-	time '10m'
 
 	input:
 	set file(align),file(map) from originalAlignment.first()
@@ -105,14 +97,6 @@ dividedAlignment.into{dividedAlignmentToBoot; refAlignmentFastTree}
 process runRefFastTree {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	module 'FastTree/2.1.7'
-
-	memory '5G'
-	time '20h'
-	cpus 1
-
-	scratch false
-
 	input:
 	set val(div), val(seed), file(refAlign) from refAlignmentFastTree
 
@@ -141,12 +125,6 @@ refTreeOutput.subscribe{
 process bootstrapAlignments {
 	tag "${refAlign} : div ${div} - seed ${seed}"
 
-	scratch false
-
-	cpus 3
-	memory '5G'
-	time '30m'
-
 	input :
 	set val(div), val(seed), file(refAlign) from dividedAlignmentToBoot
 
@@ -156,7 +134,7 @@ process bootstrapAlignments {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	goalign build seqboot -i !{refAlign} -n 1000 -o boot -S -s ${RANDOM} --tar --gz -t 3
+	goalign build seqboot -i !{refAlign} -n 1000 -o boot -S -s ${RANDOM} --tar --gz -t !{task.cpus}
 	printf `goalign stats nseq -i !{refAlign}`
 	'''
 }
@@ -168,14 +146,6 @@ bootAlignment.choice( dividedBootAlignment, groupedBootAlignment ) { item -> ite
 
 process runGroupedBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
-
-	module 'FastTree/2.1.7'
-
-	cpus 1
-	memory '5G'
-	time '24h'
-
-	scratch true
 
 	input:
 	set val(div), val(seed), val(nbtaxa), file(bootFile) from groupedBootAlignment
@@ -193,12 +163,6 @@ process runGroupedBootFastTree {
 process divideBootAlign{
 	tag "${bootFile} : div ${div} - seed ${seed}"
 
-	cpus 1
-	memory '2G'
-	time '1h'
-
-	scratch true
-
 	input:
 	set val(div), val(seed), val(nbtaxa), file(bootFile) from dividedBootAlignment
 
@@ -215,14 +179,6 @@ process divideBootAlign{
 
 process runBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
-
-	module 'FastTree/2.1.7'
-
-	cpus 1
-	memory '5G'
-	time '15h'
-
-	scratch false
 
 	input:
 	set val(div), val(seed), file(bootFile) from dividedBootAlignToTree
@@ -251,13 +207,6 @@ This process reads the Channel joinedBootTreeOutput
 and Concatenate all bootstrap trees into a single file
 */
 process concatBootTreeFiles {
-
-	scratch false
-
-	cpus 1
-	memory '500M'
-	time '1h'
-
 	input:
 	set val(div), val(seed), file(bootstrapFileList) from joinedBootTreeOutput
 	

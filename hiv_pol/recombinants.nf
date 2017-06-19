@@ -17,9 +17,6 @@ process printSequences{
 
 	scratch true
 
-	cpus 1
-	memory '4G'
-
 	input:
 	file(chunk) from sequences
 
@@ -28,7 +25,7 @@ process printSequences{
 
 	shell:
 	'''
-	jpHMM -s !{chunk} -v HIV -P $HOME/apps/jpHMM/priors -I $HOME/apps/jpHMM/input
+	!{task.jphmmpath}/src/jpHMM -s !{chunk} -v HIV -P !{task.jphmmpath}/priors -I !{task.jphmmpath}/input
 	grep -v "^#" output/recombination.txt > recomb.txt
 	rm -rf output
 	'''
