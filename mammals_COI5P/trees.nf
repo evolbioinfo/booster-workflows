@@ -233,7 +233,7 @@ dividedBootAlignment = Channel.create()
 groupedBootAlignment = Channel.create()
 
 /* If the alignment is too large, we infer bootstrap trees separately */
-bootAlignment.choice( dividedBootAlignment, groupedBootAlignment ) { item -> item[3].toInteger() > 180 ? 0 : 1 }
+bootAlignment.choice( dividedBootAlignment, groupedBootAlignment ) { item -> item[2].toInteger() > 180 ? 0 : 1 }
 
 /* Bootstrap trees are inferred in the same process */
 process runGroupedBootFastTree {
