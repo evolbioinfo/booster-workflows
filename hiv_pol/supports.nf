@@ -87,7 +87,7 @@ process analyzeSupports {
 	shell:
 	'''
 	gotree stats edges -i !{tbe} | awk '{if($4 != "N/A" && NR>1){print "!{div}\t!{seed}\tnot_collapsed\tTBE\t" $4 "\t" $7}}' > supports.txt
-	gotree stats edges -i !{fbp} | awk '{if($4 != "N/A" && NR>1){print "!{div}\t!{seed}\tnot_collapsed\tFBP\t" $4 "\t" $7"}}' >> supports.txt
+	gotree stats edges -i !{fbp} | awk '{if($4 != "N/A" && NR>1){print "!{div}\t!{seed}\tnot_collapsed\tFBP\t" $4 "\t" $7}}' >> supports.txt
 	'''
 }
 
