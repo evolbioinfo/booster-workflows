@@ -1,6 +1,6 @@
 # BOOSTER - BOOtstrap Support by TransfER - Workflows
 
-This git repository contains the workflows used in the study "Smooting Felsenstein's Phylogenetic Bootstrap in the Era of Big Data".
+This git repository contains the workflows used in the study "Boosting Felsenstein Phylogenetic Bootstrap".
 
 They are implemented in [Nextflow](https://www.nextflow.io/).
 
