@@ -20,11 +20,9 @@ gotree rename -m !{namemap} -r -i !{tree} | gotree compute bipartitiontree -f si
 
 // Function to compare the edges
 function extracttaxa(){
-    echo $1 | gotree rename -m !{namemap} -r \
-	| gotree prune -c $2 \
-	| gotree compare edges -m --moved-taxa -c $2 \
-	| awk '{if($5=="false" && $11==""){print $0}}' \
-	| sort -u -k10,10n -t$'\t' | head -n 1
+    echo $1 | gotree rename -m name_map.txt.gz -r \
+	| gotree compare edges -m --moved-taxa -i $2 -c stdin \
+	| awk '{if($5=="false" && $11==""){print $0}}'
 }
 export -f extracttaxa
 
