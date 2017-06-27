@@ -1,5 +1,5 @@
 # Realign without known recombinants and remove drug resistance mutations
-nextflow run realign.nf -c nextflow_configs/realign.config               \
+nextflow run realign.nf -c nextflow_configs/realign.config              \
                         --alignment "../data/vih/All.pol.aln.fasta.gz"  \
                         --hxb2 "../data/vih/HXB2.fasta"                 \
                         --taxafile "../data/vih/pol_nonrecombinant.txt" \
@@ -22,11 +22,11 @@ nextflow run recombinants.nf -c nextflow_configs/recomb.config          \
                              --alignment "results/realignment.fasta.gz"
 
 # Plots
-nextflow run plots.nf -c nextflow_configs/plots.config                    \
-	              --tbetree "results/supports/1_691607951_tbe.nw"     \
-	              --fbptree "results/supports/1_691607951_fbp.nw"     \
-		      --namemap "results/aligns/name_map.txt.gz"          \
-		      --resultdir "results/plots"                         \
-		      --recomb "results/formated.txt"                     \
-		      --boosterlog "results/supports/1_691607951_tbe.log" \
+nextflow run plots.nf -c nextflow_configs/plots.config                        \
+	              --tbetree "results/supportstrees/1_691607951_tbe.nw"    \
+	              --fbptree "results/supportstrees/1_691607951_fbp.nw"    \
+		      --namemap "results/aligns/name_map.txt.gz"              \
+		      --resultdir "results/plots"                             \
+		      --recomb "results/recombinants/formated.txt"            \
+		      --boosterlog "results/supportstrees/1_691607951_tbe.log"\
 		      --allsupports "results/allsupports.txt"
