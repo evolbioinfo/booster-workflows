@@ -65,5 +65,5 @@ line_width	2
 EOF
 
 # We finally download resulting images
-gotree dlimage itol -i $(basename $fbpurl) -f svg -o !{outprefix}_fbp.svg -c options_fbp.txt
-gotree dlimage itol -i $(basename $tbeurl) -f svg -o !{outprefix}_tbe.svg -c options_tbe.txt
+gotree download itol -i $(basename $fbpurl) -f svg -o !{outprefix}_fbp.svg -c options_fbp.txt
+gotree download itol -i $(basename $tbeurl) -f svg -o !{outprefix}_tbe.svg -c options_tbe.txt

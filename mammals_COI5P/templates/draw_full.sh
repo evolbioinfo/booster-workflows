@@ -112,5 +112,5 @@ EOF
 #######################################################
 # We download images from iTOL
 #######################################################
-gotree dlimage itol -i $(basename $urlfbp) -f svg -o !{outprefix}_fbp.svg -c options_fbp.txt
-gotree dlimage itol -i $(basename $urltbe) -f svg -o !{outprefix}_tbe.svg -c options_tbe.txt
+gotree download itol -i $(basename $urlfbp) -f svg -o !{outprefix}_fbp.svg -c options_fbp.txt
+gotree download itol -i $(basename $urltbe) -f svg -o !{outprefix}_tbe.svg -c options_tbe.txt
