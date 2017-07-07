@@ -17,8 +17,8 @@ allsupports=file(params.allsupports)
 recomb=file(params.recomb)
 boosterlog=file(params.boosterlog)
 
-mediumtrees=Channel.from(["Sample1", file("results/supports/16_1339632896_fbp.nw"),file("results/supports/16_1339632896_tbe.nw")],
-			 ["Sample2", file("results/supports/16_1374534207_fbp.nw"),file("results/supports/16_1374534207_tbe.nw")])
+mediumtrees=Channel.from(["Sample1", file("results/supportstrees/16_1339632896_fbp.nw"),file("results/supportstrees/16_1339632896_tbe.nw")],
+			 ["Sample2", file("results/supportstrees/16_1374534207_fbp.nw"),file("results/supportstrees/16_1374534207_tbe.nw")])
 
 mediumtrees.into{mediumtrees1; mediumtrees2; mediumtrees3}
 
