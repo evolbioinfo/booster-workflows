@@ -165,7 +165,7 @@ process divideAlignment{
 	then
 	    gunzip -c !{align} > align_!{div}_!{seed}.fa
 	else
-	    goalign sample -i !{align} -n $NB -s !{seed} -o align_!{div}_!{seed}.fa
+	    goalign sample seqs -i !{align} -n $NB -s !{seed} -o align_!{div}_!{seed}.fa
 	fi
 	gzip align_!{div}_!{seed}.fa
 	'''
