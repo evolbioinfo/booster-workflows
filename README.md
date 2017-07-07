@@ -14,6 +14,8 @@ They are implemented in [Nextflow](https://www.nextflow.io/).
 Each folder contains a `run.sh` script to launch the analyses.
 
 To run all the pipelines, the following dependencies are necessary:
+* [Nextflow](https://www.nextflow.io/)
+
 
 * [booster](https://github.com/evolbioinfo/booster)
 * [goalign](https://github.com/fredericlemoine/goalign)
@@ -34,4 +36,3 @@ To run all the pipelines, the following dependencies are necessary:
 * [tqdist](http://users-cs.au.dk/cstorm/software/tqdist/)
 * [Seq-Gen](https://github.com/rambaut/Seq-Gen)
 * [INDELible](http://abacus.gene.ucl.ac.uk/software/indelible/)
-* [Nextflow](https://www.nextflow.io/)
