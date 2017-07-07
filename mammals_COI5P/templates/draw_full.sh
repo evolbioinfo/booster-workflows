@@ -18,23 +18,23 @@ gotree subtree -i !{ncbi} -n "Perissodactyla" | gotree stats tips | tail -n+2 | 
 gotree subtree -i !{ncbi} -n "Smutsia.Manis" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_manis.txt
 gotree subtree -i !{ncbi} -n "^Tupaia$"  | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_scandentia.txt
 # Sub cetartidactyla
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Cetacea" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_cetacea.txt
+gotree subtree -i !{ncbi} -n "^Cetacea" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_cetacea.txt
 # Sub rodentia
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Sciurognathi" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_sciurognathi.txt
+gotree subtree -i !{ncbi} -n "^Sciurognathi" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_sciurognathi.txt
 # Sub sciurognathi
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Muroidea" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_muroidea.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Dipodidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_dipodidae.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Sciuridae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_sciuridae.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Heteromyidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_heteromyidae.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Geomyidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_geomyidae.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Perognathinae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_perognathinae.txt
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Dipodomys$" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_dipodomyinae.txt
+gotree subtree -i !{ncbi} -n "^Muroidea" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_muroidea.txt
+gotree subtree -i !{ncbi} -n "^Dipodidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_dipodidae.txt
+gotree subtree -i !{ncbi} -n "^Sciuridae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_sciuridae.txt
+gotree subtree -i !{ncbi} -n "^Heteromyidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_heteromyidae.txt
+gotree subtree -i !{ncbi} -n "^Geomyidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_geomyidae.txt
+gotree subtree -i !{ncbi} -n "^Perognathinae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_perognathinae.txt
+gotree subtree -i !{ncbi} -n "^Dipodomys$" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_dipodomyinae.txt
 # Sub carnivora
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Mustelinae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_mustelinae.txt
+gotree subtree -i !{ncbi} -n "^Mustelinae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_mustelinae.txt
 # Sub afrotheria
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Elephantidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_elephantidae.txt
+gotree subtree -i !{ncbi} -n "^Elephantidae" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_elephantidae.txt
 #Simians
-gotree subtree -i ../data/ncbitax/ncbi_labels.nw -n "^Anthropoidea.Simiiformes" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_simians.txt
+gotree subtree -i !{ncbi} -n "^Anthropoidea.Simiiformes" | gotree stats tips | tail -n+2 | cut -f 4 > ncbi_simians.txt
 # Dermoptera
 echo "Galeopterus_variegatus" > ncbi_dermoptera.txt
 
