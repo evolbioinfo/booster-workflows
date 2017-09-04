@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 /* "True" tree dir (tree that will serve as reference for simulations) */
-params.datadir       = "$baseDir/../mammals_COI5P/result/trees/"
+params.datadir       = "$baseDir/../mammals_COI5P/results/fasttree/trees"
 params.resultdir     = 'result'
 params.inittree      = 'ref_phyml_1_31144.nw.gz'
 params.seqlen        = 200
@@ -12,8 +12,6 @@ params.rateshuffle   = 0.5
 params.raterecombi   = 0
 params.lengthrecombi = 0
 params.raterogue     = 0
-/*params.lengthrogue   = 0.5*/
-params.simulator     = "seqgen"
 
 params.genmodel  = 'WAG'
 params.treemodel = 'WAG'
@@ -34,11 +32,6 @@ simulator     = params.simulator
 
 genmodel  = params.genmodel
 treemodel = params.treemodel
-
-fasttreemodel = ''
-if(treemodel.equals("WAG")){
-    fasttreemodel = '-wag'
-}
 
 resultDir.with {mkdirs()}
 alignmentDir.with {mkdirs()}
@@ -74,12 +67,7 @@ process simulateFasta{
 	file("original.fa.gz") into alignOriginalFasta
 
 	shell:
-	if (simulator == "seqgen")
-		template 'seqgen.sh'
-	else if (simulator == "indelible")
-		template 'indelible.sh'
-	else
-		error "Invalid simulation mode: ${simulator} (must be indelible or seqgen)"
+	template 'indelible.sh'
 }
 
 process shuffleOriginalFasta{
@@ -176,13 +164,11 @@ process runRefFastTree {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	goalign reformat fasta -i !{refAlign} -o tmp.fa
-	goalign reformat phylip -i !{refAlign} -o tmp.phylip
-	FastTree -nopr -nosupport !{fasttreemodel} -gamma tmp.fa > tmp.nw
-        phyml -i tmp.phylip -b 0 -m !{treemodel} -a e -t e -o lr -u tmp.nw -d aa --quiet 1>&2
-        mv tmp.phylip_phyml_tree.txt refTree.nw
+	goalign reformat phylip -i !{refAlign} -o al.phy
+	raxmlHPC-PTHREADS -f o -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
+	mv RAxML_result.TEST refTree.nw
 	gzip refTree.nw
-	rm -f tmp.fa tmp.phylip* tmp.nw
+	rm -f al.phy_* al.phy
 	'''
 }
 
@@ -241,7 +227,7 @@ process divideBootAlign{
 	set val(div), val(seed), val(length), val(type), file(bootFile) from bootAlignment.mix(bootSimuAlignment)
 
 	output:
-	set val(div), val(seed), val(type), file("boot_*.fa.gz") into bootAlignToTree mode flatten
+	set val(div), val(seed), val(type), file("boot*.fa.gz") into bootAlignToTree mode flatten
 	
 	shell:
 	'''
@@ -253,9 +239,6 @@ process divideBootAlign{
 process runBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
 
-	module 'FastTree/2.1.8'
-	module 'perl/5.22.0'
-
 	cpus 1
 	memory '5G'
 	time '15h'
@@ -263,7 +246,7 @@ process runBootFastTree {
 	scratch true
 
 	input:
-	set val(div), val(seed), val(type), file(bootFile) from dividedBootAlignToTree
+	set val(div), val(seed), val(type), file(bootFile) from bootAlignToTree
 
 	output:
 	set val(div), val(seed), val(type), file("${bootFile.baseName}.nw.gz") into bootTreeOutput
@@ -271,15 +254,16 @@ process runBootFastTree {
 	shell:
 	'''
 	#!/usr/bin/env bash
-        goalign reformat fasta -i !{bootFile}                       \
-		| FastTree -nopr -nosupport !{fasttreemodel} -gamma \
-		| gzip -c -                                         \
-		> !{bootFile.baseName}.nw.gz
+	goalign reformat phylip -i !{bootFile} -o al.phy
+	raxmlHPC-PTHREADS -f o -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
+	mv RAxML_result.TEST !{bootFile.baseName}.nw
+	gzip !{bootFile.baseName}.nw
+	rm -f al.phy_* al.phy
 	'''
 }
 
 /**
- We group the bootstrap trees per ref alignment and alignment length
+ We group the bootstrap trees per ref alignment
  => and send that into the Channel 
  joinedBootTreeOutput
 */
@@ -303,7 +287,6 @@ process concatBootTreeFiles {
 	'''
 }
 
-
 concatBootTreeOutput.subscribe{
-	div, seed, length, bootTree -> bootTree.copyTo(treeDir.resolve("boot_"+div+"_"+seed+".nw.gz"));
+	div, seed, type, bootTree -> bootTree.copyTo(treeDir.resolve("boot_"+div+"_"+type+"_"+seed+".nw.gz"));
 }
