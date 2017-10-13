@@ -15,9 +15,9 @@ originalTree = file([params.datadir,params.inittree].join(File.separator))
 resultDir    = file(params.resultdir)
 treeDir      = file([params.resultdir,"trees"].join(File.separator))
 
-nboot     = params.nboot
 seqlen    = params.seqlen
 genmodel  = params.genmodel
+nboot     = params.nboot
 
 raterogue = params.raterogue
 rateshuffle = params.rateshuffle
@@ -58,7 +58,7 @@ process simulatefasta{
 
 	output:
 	set val(div), val(seed), file(tree), file("original.fa.gz") into simfasta, simfastacopy
-	set val(div), val(seed), file("rogues.txt.gz") into refrogues, refrogues2
+	set val(div), val(seed), file("rogues.txt.gz") into refrogues,refrogues2
 
 	shell:
 	template 'indelible.sh'
@@ -97,17 +97,16 @@ process inferreftree {
 	'''
 	#!/usr/bin/env bash
 	goalign reformat phylip -i !{align} -o al.phy
-	raxmlHPC-PTHREADS -f d -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
-	mv RAxML_result.TEST reftree.nw
+	goalign reformat fasta -i !{align} -o al.fa
+	FastTree -nopr -nosupport -wag -gamma al.fa > reftree.nw
 	gzip reftree.nw
-	rm -f al.phy_* al.phy
+	rm -f al.phy al.fa
 	'''
 }
 
 reftrees.subscribe{
 	div, seed, reftree -> reftree.copyTo(treeDir.resolve("ref_"+div+"_"+seed+".nw.gz"))
 }
-
 
 /**
 We build the nboot bootstraps alignment for a given reference alignment in a set of gz files
@@ -142,6 +141,7 @@ process bootsimualignments {
 	set val(div), val(seed), file(truetree), file(align) from simfastabootsimu
 	val raterogue
 	val rateshuffle
+        val genmodel
 	val nboot
 
 	output:
@@ -194,10 +194,10 @@ process inferboottrees {
 	'''
 	#!/usr/bin/env bash
 	goalign reformat phylip -i !{bootFile} -o al.phy
-	raxmlHPC-PTHREADS -f d -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
-	mv RAxML_result.TEST !{bootFile.baseName}.nw
+	goalign reformat fasta -i !{bootFile} -o al.fa
+        FastTree -nopr -nosupport -wag -gamma al.fa > !{bootFile.baseName}.nw
 	gzip !{bootFile.baseName}.nw
-	rm -f al.phy_* al.phy
+	rm -f al.phy al.fa
 	'''
 }
 
@@ -265,6 +265,7 @@ process supportsample {
 	shell:
 	'''
 	gotree sample --replace -n !{nboot} -i !{boottrees} -s !{s} | gzip -c > boot_samp.nw.gz
+
 	gotree compute support classical -i !{reftree} -b boot_samp.nw.gz -o fbp_samp.nw -t !{task.cpus}
 	gotree compute support   booster -i !{reftree} -b boot_samp.nw.gz -o tbe_samp.nw -t !{task.cpus}
 	'''

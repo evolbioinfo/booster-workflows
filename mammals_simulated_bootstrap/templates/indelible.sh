@@ -23,5 +23,15 @@ EOF
 
 indelible
 
-goalign reformat fasta -p -i outputname_TRUE.phy | gzip -c - > original.fa.gz
+goalign reformat fasta -p -i outputname_TRUE.phy \
+           | goalign sort                        \
+           | goalign shuffle sites               \
+                         -r !{rateshuffle}       \
+                         -s 10                   \
+                         --rogue !{raterogue}    \
+                         --rogue-file rogues.txt \
+                         --stable-rogues         \
+    | gzip -c - > original.fa.gz
+
 rm -f outputname* control.txt trees.txt
+gzip rogues.txt

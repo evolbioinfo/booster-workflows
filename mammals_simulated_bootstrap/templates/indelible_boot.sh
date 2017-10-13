@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-gunzip -c !{tree} > tree.nh
+gunzip -c !{truetree} > tree.nh
 
-for i in {1..1000}
+for i in {1..!{nboot}}
 do
     cat > control.txt <<EOF
 [TYPE] AMINOACID 2
@@ -28,8 +28,20 @@ EOF
     
     indelible
 
-    goalign reformat fasta -p -i outputname_TRUE.phy | gzip -c -  > bootsimu_${i}.fa.gz
+    goalign reformat fasta -p -i outputname_TRUE.phy \
+           | goalign sort                            \
+           | goalign shuffle sites                   \
+                         -r !{rateshuffle}           \
+                         -s 10                       \
+                         --rogue !{raterogue}        \
+                         --rogue-file rogues_tmp.txt \
+                         --stable-rogues             \
+           | gzip -c - > bootsimu_${i}.fa.gz
     rm -f outputname* control.txt trees.txt
+    cat rogues_tmp.txt >> rogues.txt
+    echo "----" >> rogues.txt
 done
+
 tar -cf bootsimu.tar bootsimu_* > /dev/null
 rm -f bootsimu_*
+gzip rogues.txt
