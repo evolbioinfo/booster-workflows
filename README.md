@@ -9,6 +9,7 @@ They are implemented in [Nextflow](https://www.nextflow.io/).
     * hiv_pol: analysis of 9147 sequences of hiv pol
     * mammals_COI5P: analysis of 1449 sequences of COI-5P protein in mammals;
     * mammals_simulated: analysis of simulated data;
+    * bootstrap_simulated_bootstrap: Comparing bootstrap samples with Simulated samples from true tree  
     * transfer_distance: analysis of transfer distance as a function of branch depth and number of taxa.
 
 Each folder contains a `run.sh` script to launch the analyses.
