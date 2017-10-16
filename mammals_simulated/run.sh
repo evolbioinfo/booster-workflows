@@ -53,7 +53,7 @@ nextflow run compare_quartets.nf -c nextflow_configs/quartets.config            
 ###############################################################
 
 # Figure S12
-nextflow run plot.nf -c nextfow_configs/plots.config                                   \
+nextflow run plot.nf -c nextflow_configs/plots.config                                  \
                       --tbetree "results/indelible/supports/1_65512081_tbe.nw"         \
                       --fbptree "results/indelible/supports/1_65512081_fbp.nw"         \
                       --noisytbetree "results/indelible0.5/supports/1_65512081_tbe.nw" \
