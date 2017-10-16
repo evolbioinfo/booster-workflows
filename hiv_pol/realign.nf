@@ -45,8 +45,6 @@ process realignSequences {
 	output:
 	file("alignment.fasta.gz") into realignment
 
-	scratch true
-
 	shell:
 	'''
 	gunzip -c !{sequences} > seqs.fa

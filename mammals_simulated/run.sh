@@ -16,12 +16,12 @@ nextflow run supports.nf -c nextflow_configs/supports.config                    
                          --truetree '../mammals_COI5P/results/fasttree/trees/ref_phyml_1_31144.nw.gz' \
                          --roguefile 'results/indelible/aligns/rogues.txt'
 
-nextflow run compare_quartets.nf -c nextflow_configs/quartets.config                                        \
-                                 --div1tree 'results/indelible/trees/ref_1_65512081.nw.gz'                  \
-                                 --truetree '../mammals_COI5P/results/fastree/trees/ref_phyml_1_31144.nw.gz'\
-                                 --boottrees 'results/indelible/trees/boot_1_65512081.nw.gz'                \
-                                 --resultdir 'results/indelible/quartets'                                   \
-                                 --roguefile 'rogue'
+nextflow run compare_quartets.nf -c nextflow_configs/quartets.config                                         \
+                                 --div1tree 'results/indelible/trees/ref_1_65512081.nw.gz'                   \
+                                 --truetree '../mammals_COI5P/results/fasttree/trees/ref_phyml_1_31144.nw.gz'\
+                                 --boottrees 'results/indelible/trees/boot_1_65512081.nw.gz'                 \
+                                 --resultdir 'results/indelible/quartets'                                    \
+                                 --roguefile 'results/indelible/aligns/rogues.txt'
 
 ###############################################################################################
 # Simulations with INDELible with 50% additional noise (and 50% more noise on 5% of the taxa) #

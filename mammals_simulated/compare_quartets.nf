@@ -34,7 +34,7 @@ process preprocessTree {
 	shell:
 	'''
 	#!/bin/bash
-	if [ !{mapfile} != "null" ]
+	if [ "!{mapfile}" != "null" ]
 	then
 		gotree rename -i !{truetree} -m !{mapfile} -o true_full.nw
 	else

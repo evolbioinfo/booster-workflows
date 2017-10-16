@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 /* "True" tree dir (tree that will serve as reference for simulations) */
-params.datadir       = "$baseDir/../mammals_COI5P/result/trees/"
+params.datadir       = "$baseDir/../mammals_COI5P/results/fasttree/trees/"
 params.resultdir     = 'result'
 params.inittree      = 'ref_phyml_1_31144.nw.gz'
 params.seqlen        = 200
@@ -252,15 +252,6 @@ process divideBootAlign{
 
 process runBootFastTree {
 	tag "${bootFile} : div ${div} - seed ${seed}"
-
-	module 'FastTree/2.1.8'
-	module 'perl/5.22.0'
-
-	cpus 1
-	memory '5G'
-	time '15h'
-
-	scratch true
 
 	input:
 	set val(div), val(seed), val(length), file(bootFile) from dividedBootAlignToTree

@@ -62,7 +62,7 @@ process computeSupports {
 	gunzip -c !{refAlign}  > ali.fa	
 
 	gotree compute support classical -i ref.nw -b boot.nw -o fbp.nw -t !{task.cpus}
-	gotree compute support booster -i ref.nw -o boot.nw -t !{task.cpus} -l tbe.log --moving-taxa --dist-cutoff 0.3 -o tbe.nw
+	gotree compute support booster -i ref.nw -b boot.nw -t !{task.cpus} -l tbe.log --moved-taxa --dist-cutoff 0.3 -o tbe.nw
 
 	# We recompute FBP using trees without rogues
 	gotree prune -i ref.nw -f !{roguefile} -o ref_norogue.nw
