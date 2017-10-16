@@ -46,7 +46,7 @@ nextflow run compare_quartets.nf -c nextflow_configs/quartets.config            
                                  --truetree '../mammals_COI5P/results/fasttree/trees/ref_phyml_1_31144.nw.gz' \
                                  --boottrees 'results/indelible0.5/trees/boot_1_65512081.nw.gz'               \
                                  --resultdir 'results/indelible0.5/quartets'                                  \
-                                 --roguefile 'rogue'
+                                 --roguefile 'results/indelible0.5/aligns/rogues.txt'
 
 ###############################################################
 #                      Plots Figures                          #
