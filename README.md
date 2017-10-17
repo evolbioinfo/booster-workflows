@@ -4,7 +4,11 @@ This git repository contains the workflows used in the study "[Boosting Felsenst
 
 They are implemented in [Nextflow](https://www.nextflow.io/).
 
-* Original data is located in the `data` folder.
+* Original data is located in the `data` folder:
+    * `mammals`: Raw alignment and annotation file
+    * `ncbitax`: Ncbi taxonomy
+    * `vih`: Raw HIV pol alignment
+
 * Each sub-folder corresponds to one analysis:
     * hiv_pol: analysis of 9147 sequences of hiv pol
     * mammals_COI5P: analysis of 1449 sequences of COI-5P protein in mammals;
