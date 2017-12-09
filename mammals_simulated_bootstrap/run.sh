@@ -7,36 +7,56 @@
 #    Replicates are generated from the true model.
 ########################################################
 
-nextflow run trees_raxml.nf -c nextflow_configs/trees_raxml.config \
-    --datadir '../mammals_COI5P/results/fasttree/trees'            \
-    --resultdir 'results_raxml_no_noise/indelible'                 \
-    --raterogue 0.0                                                \
-    --rateshuffle 0.0                                              \
-    --nboot 1000                                                   \
+# RAxML without additional noise
+nextflow run trees_workflow.nf -c nextflow_configs/trees_raxml.config \
+    --datadir '../mammals_COI5P/results/fasttree/trees'               \
+    --inittree 'ref_phyml_1_31144.nw.gz'                              \
+    --resultdir 'results_raxml_no_noise/indelible'                    \
+    --raterogue 0.0                                                   \
+    --rateshuffle 0.0                                                 \
+    --nboot 1000                                                      \
+    --treetool raxml                                                  \
+    --seqlen 250                                                      \
+    --gentool indelible                                               \
     -w work_raxml_no_noise
 
-nextflow run trees_raxml.nf -c nextflow_configs/trees_raxml.config \
-    --datadir '../mammals_COI5P/results/fasttree/trees'            \
-    --resultdir 'results_raxml_noise/indelible'                    \
-    --raterogue 0.05                                               \
-    --rateshuffle 0.5                                              \
-    --nboot 1000                                                   \
-    -w work_raxml_noise                                            \
+# RAxML with additional noise
+nextflow run trees_workflow.nf -c nextflow_configs/trees_raxml_long.config \
+    --datadir '../mammals_COI5P/results/fasttree/trees'               \
+    --inittree 'ref_phyml_1_31144.nw.gz'                              \
+    --resultdir 'results_raxml_noise/indelible'                       \
+    --raterogue 0.05                                                  \
+    --rateshuffle 0.5                                                 \
+    --nboot 1000                                                      \
+    --treetool raxml                                                  \
+    --seqlen 250                                                      \
+    --gentool indelible                                               \
+    -w work_raxml_noise                                               \
     -resume
 
-nextflow run trees_fasttree.nf -c nextflow_configs/trees_fasttree.config \
-    --datadir ../mammals_COI5P/results/fasttree/trees                    \
-    --resultdir results_fasttree_noise/indelible                         \
-    --raterogue 0.05                                                     \
-    --rateshuffle 0.5                                                    \
-    --nboot 1000                                                         \
-    -w work_fasttree_noise                                               \
-    -resume
-
-nextflow run trees_fasttree.nf -c nextflow_configs/trees_fasttree.config \
+# FastTree without additional noise
+nextflow run trees_workflow.nf -c nextflow_configs/trees_fasttree.config \
     --datadir '../mammals_COI5P/results/fasttree/trees'                  \
+    --inittree 'ref_phyml_1_31144.nw.gz'                                 \
     --resultdir 'results_fasttree_no_noise/indelible'                    \
     --raterogue 0.0                                                      \
     --rateshuffle 0.0                                                    \
     --nboot 1000                                                         \
+    --treetool fasttree                                                  \
+    --seqlen 250                                                         \
+    --gentool indelible                                                  \
     -w work_fasttree_no_noise
+
+# FastTree with additional noise
+nextflow run trees_workflow.nf -c nextflow_configs/trees_fasttree.config \
+    --datadir '../mammals_COI5P/results/fasttree/trees'                  \
+    --inittree 'ref_phyml_1_31144.nw.gz'                                 \
+    --resultdir 'results_fasttree_noise/indelible'                       \
+    --raterogue 0.05                                                     \
+    --rateshuffle 0.5                                                    \
+    --nboot 1000                                                         \
+    --treetool fasttree                                                  \
+    --seqlen 250                                                         \
+    --gentool indelible                                                  \
+    -w work_fasttree_noise                                               \
+    -resume

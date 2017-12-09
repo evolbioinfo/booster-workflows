@@ -22,7 +22,7 @@ EOF
     
     cat >> control.txt <<EOF
 [PARTITIONS] partitionname
-  [treename modelname 250]
+  [treename modelname !{seqlen}]
 [EVOLVE] partitionname 1 outputname
 EOF
     

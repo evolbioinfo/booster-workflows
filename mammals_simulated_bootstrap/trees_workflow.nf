@@ -4,9 +4,12 @@
 params.datadir       = "$baseDir/../mammals_COI5P/results/fasttree/trees"
 params.resultdir     = 'result'
 params.inittree      = 'ref_phyml_1_31144.nw.gz'
-params.seqlen        = 200
+params.seqlen        = 250
 params.nboot         = 1000
+// Maybe raxml|fasttree
+params.treetool      = 'raxml'
 
+params.gentool = 'indelible'
 params.genmodel  = 'WAG'
 params.raterogue   = 0.0
 params.rateshuffle = 0.0
@@ -18,9 +21,12 @@ treeDir      = file([params.resultdir,"trees"].join(File.separator))
 nboot     = params.nboot
 seqlen    = params.seqlen
 genmodel  = params.genmodel
+gentool   = params.gentool
 
 raterogue = params.raterogue
 rateshuffle = params.rateshuffle
+
+treetool = params.treetool
 
 resultDir.with {mkdirs()}
 treeDir.with {mkdirs()}
@@ -55,13 +61,18 @@ process simulatefasta{
 	val raterogue
 	val rateshuffle
 	set val(div), val(seed), file(tree) from truetrees
+	val gentool
+	val seqlen
 
 	output:
 	set val(div), val(seed), file(tree), file("original.fa.gz") into simfasta, simfastacopy
 	set val(div), val(seed), file("rogues.txt.gz") into refrogues, refrogues2
 
 	shell:
-	template 'indelible.sh'
+	if( gentool == 'indelible' )
+		template 'indelible.sh'
+	else
+	     error "Invalid alignment simulator: ${gentool}"
 }
 
 simfastacopy.subscribe{
@@ -85,23 +96,25 @@ simfasta.into{simfastaboot; simfastabootsimu; simfastareftree}
    The Process that will reconstruct the Reference trees
 */
 process inferreftree {
-	tag "${refAlign} : div ${div} - seed ${seed}"
+	tag "${treetool}:${align}_${div}_${seed}"
 
 	input:
 	set val(div), val(seed), file(truetree), file(align) from simfastareftree
+	val treetool
 
 	output:
 	set val(div), val(seed), file("reftree.nw.gz") into reftrees, reftreesupport
+	set val(div), val(seed), file(truetree), file("reftree.nw.gz") into reftruetreesupport
 	
 	shell:
-	'''
-	#!/usr/bin/env bash
-	goalign reformat phylip -i !{align} -o al.phy
-	raxmlHPC-PTHREADS -f d -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
-	mv RAxML_result.TEST reftree.nw
-	gzip reftree.nw
-	rm -f al.phy_* al.phy
-	'''
+	inalign="${align}"
+	outtree="reftree.nw"
+	if( treetool == 'raxml' )
+	    template 'raxml.sh'
+	else if( treetool == 'fasttree' )
+	     template 'fasttree.sh'
+	else
+	     error "Invalid tree inference tool: ${treetool}"
 }
 
 reftrees.subscribe{
@@ -113,7 +126,7 @@ reftrees.subscribe{
 We build the nboot bootstraps alignment for a given reference alignment in a set of gz files
 */
 process bootalignments {
-	tag "${refAlign} : div ${div} - seed ${seed}"
+	tag "${align}:${div}_${seed}"
 
 	input:
 	set val(div), val(seed), file(truetree), file(align) from simfastaboot
@@ -136,20 +149,25 @@ process bootalignments {
 We build the nboot bootstraps alignment for a given reference alignment in a set of gz files
 */
 process bootsimualignments {
-	tag "${refAlign} : div ${div} - seed ${seed}"
+	tag "${align}:${div}_${seed}"
 
 	input:
 	set val(div), val(seed), file(truetree), file(align) from simfastabootsimu
 	val raterogue
 	val rateshuffle
 	val nboot
+	val genmodel
+	val seqlen
 
 	output:
 	set val(div), val(seed), val("simu"), file("bootsimu.tar") into bootsimualigns, bootsimualignscopy
 	set val(div), val(seed), file("rogues.txt.gz") into bootrogues
 
 	shell:
-	template 'indelible_boot.sh'
+	if( gentool == 'indelible' )
+		template 'indelible_boot.sh'
+	else
+	     error "Invalid alignment simulator: ${gentool}"
 }
 
 
@@ -166,7 +184,7 @@ bootrogues.subscribe{
 We first divide the bootstrap trees then For each bootstrap alignment, we run FastTree
 */
 process divideboots{
-	tag "${bootFile} : div ${div} - seed ${seed}"
+	tag "${bootFile}:${div}_${seed}"
 
 	input:
 	set val(div), val(seed), val(type), file(bootFile) from bootaligns.mix(bootsimualigns)
@@ -182,23 +200,24 @@ process divideboots{
 }
 
 process inferboottrees {
-	tag "${bootFile} : div ${div} - seed ${seed}"
+	tag "${treetool}:${bootFile}_${div}_${seed}"
 
 	input:
 	set val(div), val(seed), val(type), file(bootFile) from divbootaligns
+	val treetool
 
 	output:
 	set val(div), val(seed), val(type), file("${bootFile.baseName}.nw.gz") into bootTreeOutput, bootTreeOutputCopy
 	
 	shell:
-	'''
-	#!/usr/bin/env bash
-	goalign reformat phylip -i !{bootFile} -o al.phy
-	raxmlHPC-PTHREADS -f d -p ${RANDOM} -m PROTGAMMAWAG -c 6 -s al.phy -n TEST -T !{task.cpus}
-	mv RAxML_result.TEST !{bootFile.baseName}.nw
-	gzip !{bootFile.baseName}.nw
-	rm -f al.phy_* al.phy
-	'''
+	inalign="${bootFile}"
+	outtree="${bootFile.baseName}.nw"
+	if( treetool == 'raxml' )
+	    template 'raxml.sh'
+	else if( treetool == 'fasttree' )
+	     template 'fasttree.sh'
+	else
+	     error "Invalid tree inference tool: ${treetool}"
 }
 
 /**
@@ -230,7 +249,7 @@ concatBootTreeOutputCopy.subscribe{
 	div, seed, type, bootTree -> bootTree.copyTo(treeDir.resolve("boot_"+div+"_"+type+"_"+seed+".nw.gz"));
 }
 
-concatBootTreeOutput.combine(reftreesupport, by: [0,1]).into{tosupport; tosampsupport}
+tosupport = concatBootTreeOutput.combine(reftreesupport, by: [0,1])
 
 process support {
 	input:
@@ -247,55 +266,58 @@ process support {
 }
 
 support.subscribe{
-	div, seed, type, fbp, tbe,log -> fbp.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_fbp.nw"));
-	     	   	    	     	    tbe.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_tbe.nw"));
-	     	   	    	     	    log.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_tbe.log"));
+	div, seed, type, fbp, tbe, log -> fbp.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_fbp.nw"));
+	     	   	    	    	tbe.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_tbe.nw"));
+					log.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_tbe.log"));
 }
 
-process supportsample {
+process supportTrueTree {
 	input:
-	set val(div), val(seed), val(type), file(boottrees), file(reftree) from tosampsupport
-	val nboot
-	each s from 10,11,12,13
+	set val(div), val(seed), file(truetree), file(reftree) from reftruetreesupport
 
 	output:
-	set val(div), val(seed), val(type), val(s), file("fbp_samp.nw"), file("tbe_samp.nw") into supportsamp
-
+	set val(div), val(seed), file("fbptrue.nw"), file("tbetrue.nw") into supporttrue, supporttrue2
 
 	shell:
 	'''
-	gotree sample --replace -n !{nboot} -i !{boottrees} -s !{s} | gzip -c > boot_samp.nw.gz
-	gotree compute support classical -i !{reftree} -b boot_samp.nw.gz -o fbp_samp.nw -t !{task.cpus}
-	gotree compute support   booster -i !{reftree} -b boot_samp.nw.gz -o tbe_samp.nw -t !{task.cpus}
+ 	gotree compute support classical -i !{reftree} -b !{truetree} -o fbptrue.nw
+	gotree compute support booster   -i !{reftree} -b !{truetree} -o tbetrue.nw
 	'''
 }
 
-supportsamp.subscribe{
-	div, seed, type, s, fbp, tbe -> fbp.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_samp"+s+"_fbp.nw"));
-	     	   	    	     	tbe.copyTo(treeDir.resolve("boot_"+type+"_"+div+"_"+seed+"_samp"+s+"_tbe.nw"));
+supporttrue.subscribe{
+	div, seed, fbp, tbe -> fbp.copyTo(treeDir.resolve("true_"+div+"_"+seed+"_fbp.nw"));
+	     	   	       tbe.copyTo(treeDir.resolve("true_"+div+"_"+seed+"_tbe.nw"));
 }
 
 
 simu = Channel.create()
 boot = Channel.create()
 support2.choice( simu, boot ) { item -> item[2] == "simu" ? 0 : 1 }
-supportmerge = simu.combine(boot,by:[0,1]).combine(refrogues2, by: [0,1])
+
+supportmerge = simu.combine(boot,by:[0,1]).combine(supporttrue2,by:[0,1]).combine(refrogues2, by: [0,1])
 
 process toSupportData{
 
 	input:
-	set val(div), val(seed), val(typesimu), file(fbpsimu:'fbpsimu.nw'), file(tbesimu:'tbesimu.nw'), file(tbelogsimu:'tbesimu.log'),val(typeboot), file(fbpboot:'fbpboot.nw'), file(tbeboot:'tbeboot.nw'), file(tbelogboot:'tbeboot.log'), file(refrogues) from supportmerge
+	set val(div), val(seed), val(typesimu), file(fbpsimu:'fbpsimu.nw'), file(tbesimu:'tbesimu.nw'), file(tbelogsimu:'tbesimu.log'),val(typeboot), file(fbpboot:'fbpboot.nw'), file(tbeboot:'tbeboot.nw'), file(tbelogboot:'tbeboot.log'), file(fbptrue:'fbptrue.nw'), file(tbetrue:'tbetrue.nw'), file(refrogues) from supportmerge
 
 	output:
-	set val(div), val(seed), file("fbp.dat"), file("tbe.dat"), file(tbelogsimu), file(tbelogboot), file(refrogues) into supportdata
+	set val(div), val(seed), file("fbp.dat"), file("tbe.dat"), file(tbelogsimu), file(tbelogboot), file(refrogues) into supportdata, supportdatacopy
 
 
 	shell:
 	'''
-	paste <(gotree stats edges -i !{tbeboot} | cut -f 1,2,3,4,7) <(gotree stats edges -i !{tbesimu} | cut -f 4) > tbe.dat
-	paste <(gotree stats edges -i !{fbpboot} | cut -f 1,2,3,4,7) <(gotree stats edges -i !{fbpsimu} | cut -f 4) > fbp.dat
+	paste <(gotree stats edges -i !{tbeboot} | cut -f 1,2,3,4,7) <(gotree stats edges -i !{tbesimu} | cut -f 4) <(gotree stats edges -i !{tbetrue} |cut -f 4) > tbe.dat
+	paste <(gotree stats edges -i !{fbpboot} | cut -f 1,2,3,4,7) <(gotree stats edges -i !{fbpsimu} | cut -f 4) <(gotree stats edges -i !{tbetrue} |cut -f 4) <(gotree stats edges -i !{fbptrue} |cut -f 4) > fbp.dat
 	'''		
 }
+
+supportdatacopy.subscribe{
+        div, seed, fbp, tbe,tbelogsimu, tbelogboot, refrogues -> fbp.copyTo(treeDir.resolve(fbp.name));
+                                  		    	      	 tbe.copyTo(treeDir.resolve(tbe.name));
+}
+
 
 process plotCompareFBPTBE {
 
