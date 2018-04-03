@@ -16,6 +16,8 @@ They are implemented in [Nextflow](https://www.nextflow.io/).
     * bootstrap_simulated_bootstrap: Comparing bootstrap samples with Simulated samples from true tree  
     * transfer_distance: analysis of transfer distance as a function of branch depth and number of taxa.
 
+* All data described in the paper can be downloaded [here](https://github.com/evolbioinfo/booster-workflows/releases/download/v0.1.0/supplementary_data_archive.zip).
+
 Each folder contains a `run.sh` script to launch the analyses.
 
 To run all the pipelines, the following dependencies are necessary:
